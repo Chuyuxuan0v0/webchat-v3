@@ -4,3 +4,5 @@ dist
 *.log
 uploads/*
 !uploads/.gitkeep
+.cursor
+/.claude/
