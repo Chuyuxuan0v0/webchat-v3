@@ -48,4 +48,15 @@ export interface SocketEvents {
   'typing:start': { chatId: string };
   'typing:stop': { chatId: string };
   'typing:indicator': { chatId: string; userId: string; username: string };
+  'unread:counts': Record<string, number>;
+  'unread:update': { chatId: string; count: number };
+  'chat:markRead': { chatId: string; messageId: string };
+}
+
+export interface UserChatState {
+  _id: string;
+  userId: string;
+  chatId: string;
+  lastReadMessageId: string;
+  lastReadAt: string;
 }

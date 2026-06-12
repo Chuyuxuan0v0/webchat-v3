@@ -9,6 +9,7 @@ interface ChatState {
   isLoading: boolean;
   hasMore: boolean;
   currentPage: number;
+  unreadCounts: Record<string, number>;
 
   setActiveChat: (chat: { id: string; type: 'group' | 'private'; name: string }) => void;
   addMessage: (message: Message) => void;
@@ -18,6 +19,10 @@ interface ChatState {
   setOnlineUsers: (users: User[]) => void;
   addOnlineUser: (user: { userId: string; username: string }) => void;
   removeOnlineUser: (userId: string) => void;
+  incrementUnread: (chatId: string) => void;
+  clearUnread: (chatId: string) => void;
+  setUnreadCounts: (counts: Record<string, number>) => void;
+  updateUnreadCount: (chatId: string, count: number) => void;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -27,6 +32,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   hasMore: true,
   currentPage: 1,
+  unreadCounts: {},
 
   setActiveChat: (chat) => {
     set({ activeChat: chat, messages: [], hasMore: true, currentPage: 1 });
@@ -108,6 +114,40 @@ export const useChatStore = create<ChatState>((set, get) => ({
   removeOnlineUser: (userId) => {
     set((state) => ({
       onlineUsers: state.onlineUsers.filter((u) => u._id !== userId),
+    }));
+  },
+
+  incrementUnread: (chatId) => {
+    set((state) => {
+      const current = state.unreadCounts[chatId] || 0;
+      return {
+        unreadCounts: {
+          ...state.unreadCounts,
+          [chatId]: Math.min(current + 1, 99),
+        },
+      };
+    });
+  },
+
+  clearUnread: (chatId) => {
+    set((state) => ({
+      unreadCounts: {
+        ...state.unreadCounts,
+        [chatId]: 0,
+      },
+    }));
+  },
+
+  setUnreadCounts: (counts) => {
+    set({ unreadCounts: counts });
+  },
+
+  updateUnreadCount: (chatId, count) => {
+    set((state) => ({
+      unreadCounts: {
+        ...state.unreadCounts,
+        [chatId]: count,
+      },
     }));
   },
 }));

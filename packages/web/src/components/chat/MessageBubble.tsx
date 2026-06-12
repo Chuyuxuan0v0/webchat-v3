@@ -12,7 +12,7 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
   const isOwn = sender._id === user?._id;
 
   return (
-    <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} animate-float-in`}>
       <Avatar
         username={sender.username}
         avatar={sender.avatar}
@@ -20,14 +20,14 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         size="sm"
       />
       <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'}`}>
-        <p className={`text-xs text-gray-500 mb-1 ${isOwn ? 'text-right' : ''}`}>
+        <p className={`text-[11px] text-surface-400 mb-1 ${isOwn ? 'text-right' : ''}`}>
           {sender.username}
         </p>
         <div
-          className={`px-4 py-2 rounded-2xl ${
+          className={`px-4 py-2.5 rounded-2xl shadow-xs ${
             isOwn
-              ? 'bg-blue-600 text-white rounded-tr-md'
-              : 'bg-gray-100 text-gray-800 rounded-tl-md'
+              ? 'bg-primary-500 text-white rounded-tr-md shadow-sm'
+              : 'bg-white text-surface-800 rounded-tl-md shadow-card'
           }`}
         >
           {message.type === 'text' && <p className="break-words">{message.content}</p>}

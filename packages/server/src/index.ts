@@ -10,6 +10,7 @@ import userRoutes from './modules/user/user.routes';
 import chatRoutes from './modules/chat/chat.routes';
 import groupRoutes from './modules/group/group.routes';
 import uploadRoutes from './modules/upload/upload.routes';
+import unreadRoutes from './modules/unread/unread.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { initializeSocket } from './socket';
 
@@ -41,6 +42,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/messages', chatRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/unread', unreadRoutes);
 
 app.use(errorHandler);
 

@@ -46,4 +46,10 @@ export const messageAPI = {
     api.get(`/messages/${chatId}?page=${page}&limit=${limit}`),
 };
 
+export const unreadAPI = {
+  getUnreadCounts: () => api.get('/unread'),
+  markAsRead: (chatId: string, messageId: string) =>
+    api.post('/unread/mark-read', { chatId, messageId }),
+};
+
 export default api;

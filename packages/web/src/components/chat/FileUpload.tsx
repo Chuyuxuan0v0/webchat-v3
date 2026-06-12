@@ -58,7 +58,7 @@ export default function FileUpload({ type }: FileUploadProps) {
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
-        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors disabled:opacity-50"
+        className="p-2 text-surface-400 hover:text-primary-500 hover:bg-primary-50 rounded-full transition-all duration-200 disabled:opacity-40"
         title={type === 'image' ? '发送图片' : '发送文件'}
       >
         {isUploading ? (

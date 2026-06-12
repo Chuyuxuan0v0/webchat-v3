@@ -24,7 +24,7 @@ export default function Avatar({
       <img
         src={avatar}
         alt={username}
-        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+        className={`${sizeClasses[size]} rounded-full object-cover shadow-sm ring-2 ring-white ${className}`}
       />
     );
   }
@@ -33,7 +33,7 @@ export default function Avatar({
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${className}`}
+      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium shadow-sm ring-2 ring-white ${className}`}
       style={{ backgroundColor: avatarBgColor }}
     >
       {initials}

@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { User } from '../models';
+import { chatService } from '../modules/chat/chat.service';
 import { messageHandler } from './handlers/message.handler';
 import { presenceHandler } from './handlers/presence.handler';
 
@@ -28,11 +29,37 @@ export const initializeSocket = (io: Server) => {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     console.log(`User connected: ${(socket as any).username} (${socket.id})`);
 
     messageHandler(io, socket);
     presenceHandler(io, socket);
+
+    // Send all unread counts to the newly connected user
+    const userId = (socket as any).userId;
+    if (userId) {
+      try {
+        const counts = await chatService.getUnreadCounts(userId);
+        socket.emit('unread:counts', counts);
+      } catch (error) {
+        console.error('Error loading unread counts:', error);
+      }
+    }
+
+    // Handle mark-as-read from client
+    socket.on('chat:markRead', async (data: { chatId: string; messageId: string }) => {
+      try {
+        const uid = (socket as any).userId;
+        if (!uid) return;
+
+        await chatService.markAsRead(uid, data.chatId, data.messageId);
+
+        // Confirm with zero count
+        socket.emit('unread:update', { chatId: data.chatId, count: 0 });
+      } catch (error) {
+        console.error('Error marking as read:', error);
+      }
+    });
 
     socket.on('typing:start', (data) => {
       socket.broadcast.emit('typing:indicator', {

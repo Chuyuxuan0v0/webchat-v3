@@ -7,8 +7,18 @@ interface SidebarProps {
   activeChatId?: string;
 }
 
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const display = count > 99 ? '99+' : String(count);
+  return (
+    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center shrink-0">
+      {display}
+    </span>
+  );
+}
+
 export default function Sidebar({ onSelectChat, activeChatId }: SidebarProps) {
-  const { onlineUsers } = useChatStore();
+  const { onlineUsers, unreadCounts } = useChatStore();
   const { user } = useAuthStore();
 
   const handlePrivateChat = (targetUser: { _id: string; username: string }) => {
@@ -22,8 +32,8 @@ export default function Sidebar({ onSelectChat, activeChatId }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+    <div className="w-64 bg-surface-50/80 backdrop-blur-sm border-r border-surface-200 flex flex-col">
+      <div className="p-4 border-b border-surface-200/60">
         <div className="flex items-center gap-3">
           <Avatar
             username={user?.username || ''}
@@ -31,8 +41,8 @@ export default function Sidebar({ onSelectChat, activeChatId }: SidebarProps) {
             avatarBgColor={user?.avatarBgColor}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-800 truncate">{user?.username}</p>
-            <p className="text-xs text-green-500">在线</p>
+            <p className="font-medium text-surface-800 truncate text-sm">{user?.username}</p>
+            <p className="text-xs text-success-500">在线</p>
           </div>
         </div>
       </div>
@@ -40,53 +50,58 @@ export default function Sidebar({ onSelectChat, activeChatId }: SidebarProps) {
       <div className="p-3">
         <button
           onClick={() => onSelectChat({ id: 'global', type: 'group', name: '聊天大厅' })}
-          className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+          className={`w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 ${
             activeChatId === 'global'
-              ? 'bg-blue-50 text-blue-600'
-              : 'hover:bg-gray-100 text-gray-700'
+              ? 'bg-primary-50 text-primary-600 shadow-xs'
+              : 'hover:bg-surface-100 text-surface-700'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg">
+            <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white text-lg shadow-sm">
               #
             </div>
-            <div>
-              <p className="font-medium">聊天大厅</p>
-              <p className="text-xs text-gray-500">群聊</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">聊天大厅</p>
+              <p className="text-xs text-surface-500">群聊</p>
             </div>
+            <UnreadBadge count={unreadCounts['global'] || 0} />
           </div>
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-2">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase">
+        <div className="px-4 py-3">
+          <h3 className="text-[11px] font-semibold text-surface-400 uppercase tracking-wider">
             在线用户 ({onlineUsers.length})
           </h3>
         </div>
-        <div className="space-y-1 px-2">
+        <div className="space-y-0.5 px-2">
           {onlineUsers
             .filter((u) => u._id !== user?._id)
-            .map((u) => (
-              <button
-                key={u._id}
-                onClick={() => handlePrivateChat(u)}
-                className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    username={u.username}
-                    avatar={u.avatar}
-                    avatarBgColor={u.avatarBgColor}
-                    size="sm"
-                  />
-                  <div>
-                    <p className="text-sm text-gray-700">{u.username}</p>
-                    <p className="text-xs text-green-500">在线</p>
+            .map((u) => {
+              const chatId = user ? [user._id, u._id].sort().join('_') : '';
+              return (
+                <button
+                  key={u._id}
+                  onClick={() => handlePrivateChat(u)}
+                  className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-surface-100 transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      username={u.username}
+                      avatar={u.avatar}
+                      avatarBgColor={u.avatarBgColor}
+                      size="sm"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-surface-700">{u.username}</p>
+                      <p className="text-xs text-success-500">在线</p>
+                    </div>
+                    <UnreadBadge count={unreadCounts[chatId] || 0} />
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
         </div>
       </div>
     </div>

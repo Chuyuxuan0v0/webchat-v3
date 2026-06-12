@@ -7,8 +7,8 @@ import ChatWindow from '../components/chat/ChatWindow';
 
 export default function ChatPage() {
   const { token } = useAuthStore();
-  const { setActiveChat, loadOnlineUsers, activeChat } = useChatStore();
-  const { connect, disconnect } = useSocketStore();
+  const { setActiveChat, loadOnlineUsers, activeChat, messages } = useChatStore();
+  const { connect, disconnect, markAsRead } = useSocketStore();
 
   useEffect(() => {
     if (token) {
@@ -22,8 +22,16 @@ export default function ChatPage() {
     };
   }, [token]);
 
+  // Mark as read when entering a chat (after messages are loaded)
+  useEffect(() => {
+    if (activeChat && messages.length > 0) {
+      const latestMessage = messages[messages.length - 1];
+      markAsRead(activeChat.id, latestMessage._id);
+    }
+  }, [activeChat?.id]);
+
   return (
-    <div className="h-screen flex">
+    <div className="h-screen flex bg-surface-50">
       <Sidebar
         onSelectChat={setActiveChat}
         activeChatId={activeChat?.id}

@@ -18,6 +18,7 @@ interface SocketState {
     fileUrl?: string;
     fileName?: string;
   }) => void;
+  markAsRead: (chatId: string, messageId: string) => void;
 }
 
 export const useSocketStore = create<SocketState>((set, get) => ({
@@ -36,7 +37,16 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     });
 
     socket.on('message:receive', (message: Message) => {
-      useChatStore.getState().addMessage(message);
+      const chatStore = useChatStore.getState();
+      const { activeChat } = chatStore;
+
+      // Add message to chat if it belongs to active chat
+      chatStore.addMessage(message);
+
+      // If message is for a non-active chat, increment unread count
+      if (!activeChat || message.chatId !== activeChat.id) {
+        chatStore.incrementUnread(message.chatId);
+      }
     });
 
     socket.on('user:online', (data) => {
@@ -45,6 +55,15 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     socket.on('user:offline', (data) => {
       useChatStore.getState().removeOnlineUser(data.userId);
+    });
+
+    // Unread events
+    socket.on('unread:counts', (counts: Record<string, number>) => {
+      useChatStore.getState().setUnreadCounts(counts);
+    });
+
+    socket.on('unread:update', ({ chatId, count }: { chatId: string; count: number }) => {
+      useChatStore.getState().updateUnreadCount(chatId, count);
     });
 
     set({ socket });
@@ -59,6 +78,14 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     const { socket } = get();
     if (socket) {
       socket.emit('message:send', data);
+    }
+  },
+
+  markAsRead: (chatId, messageId) => {
+    const { socket } = get();
+    if (socket) {
+      socket.emit('chat:markRead', { chatId, messageId });
+      useChatStore.getState().clearUnread(chatId);
     }
   },
 }));

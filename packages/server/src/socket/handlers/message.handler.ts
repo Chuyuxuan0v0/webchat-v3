@@ -18,6 +18,15 @@ export const messageHandler = (io: Server, socket: Socket) => {
 
       if (data.chatType === 'group') {
         io.emit('message:receive', message);
+
+        // Notify all OTHER users in the group about unread count
+        for (const [, s] of io.sockets.sockets) {
+          const socketUserId = (s as any).userId;
+          if (socketUserId && socketUserId !== userId) {
+            const count = await chatService.countUnread(socketUserId, data.chatId);
+            s.emit('unread:update', { chatId: data.chatId, count });
+          }
+        }
       } else {
         socket.emit('message:receive', message);
 
@@ -27,6 +36,10 @@ export const messageHandler = (io: Server, socket: Socket) => {
 
         if (receiverSocket) {
           receiverSocket.emit('message:receive', message);
+
+          // Send unread count to the receiver
+          const count = await chatService.countUnread(otherUserId, data.chatId);
+          receiverSocket.emit('unread:update', { chatId: data.chatId, count });
         }
       }
     } catch (error) {
