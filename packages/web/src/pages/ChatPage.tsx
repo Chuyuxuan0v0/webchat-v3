@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useChatStore } from '../stores/chatStore';
 import { useSocketStore } from '../stores/socketStore';
@@ -9,6 +9,9 @@ export default function ChatPage() {
   const { token } = useAuthStore();
   const { setActiveChat, loadOnlineUsers, activeChat, messages } = useChatStore();
   const { connect, disconnect, markAsRead } = useSocketStore();
+
+  // Track last marked message to avoid redundant markAsRead calls
+  const lastMarkedMsgRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (token) {
@@ -22,13 +25,21 @@ export default function ChatPage() {
     };
   }, [token]);
 
+  // Reset last marked msg when switching chats
+  useEffect(() => {
+    lastMarkedMsgRef.current = null;
+  }, [activeChat?.id]);
+
   // Mark as read when entering a chat (after messages are loaded)
   useEffect(() => {
     if (activeChat && messages.length > 0) {
       const latestMessage = messages[messages.length - 1];
-      markAsRead(activeChat.id, latestMessage._id);
+      if (latestMessage._id && lastMarkedMsgRef.current !== latestMessage._id) {
+        lastMarkedMsgRef.current = latestMessage._id;
+        markAsRead(activeChat.id, latestMessage._id);
+      }
     }
-  }, [activeChat?.id]);
+  }, [activeChat?.id, messages, markAsRead]);
 
   return (
     <div className="h-screen flex overflow-hidden bg-surface-50">
