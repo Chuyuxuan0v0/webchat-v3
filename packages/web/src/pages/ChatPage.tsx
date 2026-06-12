@@ -31,7 +31,7 @@ export default function ChatPage() {
   }, [activeChat?.id]);
 
   return (
-    <div className="h-screen flex bg-surface-50">
+    <div className="h-screen flex overflow-hidden bg-surface-50">
       <Sidebar
         onSelectChat={setActiveChat}
         activeChatId={activeChat?.id}

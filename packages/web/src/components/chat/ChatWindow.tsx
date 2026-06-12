@@ -4,7 +4,7 @@ import MessageInput from './MessageInput';
 
 export default function ChatWindow() {
   return (
-    <div className="flex-1 flex flex-col bg-surface-50">
+    <div className="flex-1 flex flex-col overflow-hidden bg-surface-50">
       <ChatHeader />
       <MessageList />
       <MessageInput />

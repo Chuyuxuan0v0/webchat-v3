@@ -32,7 +32,7 @@ export default function Sidebar({ onSelectChat, activeChatId }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 bg-surface-50/80 backdrop-blur-sm border-r border-surface-200 flex flex-col">
+    <div className="w-64 h-full bg-surface-50/80 backdrop-blur-sm border-r border-surface-200 flex flex-col overflow-hidden">
       <div className="p-4 border-b border-surface-200/60">
         <div className="flex items-center gap-3">
           <Avatar
