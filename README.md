@@ -2,6 +2,11 @@
 
 基于 React + Express + MongoDB 的实时聊天应用。
 
+从 仓库[webchat](https://github.com/Chuyuxuan0v0/webchat) 重构而来，全新的版本。欢迎体验！
+
+![演示图片1](docs/imgs/image.png)
+![演示图片2](docs/imgs/image2.png)
+
 ## 技术栈
 
 - **前端**: React 19, Vite, TypeScript, Zustand, Tailwind CSS
