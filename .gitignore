@@ -6,3 +6,5 @@ uploads/*
 !uploads/.gitkeep
 .cursor
 /.claude/
+**/superpowers/
+packages/server/uploads/*
