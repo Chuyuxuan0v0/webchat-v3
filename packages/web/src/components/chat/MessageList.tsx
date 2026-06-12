@@ -1,37 +1,58 @@
 import { useEffect, useRef, useState } from 'react';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { useChatStore } from '../../stores/chatStore';
 import MessageBubble from './MessageBubble';
 
 export default function MessageList() {
   const { messages, isLoading, hasMore, loadMoreMessages, activeChat } = useChatStore();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const prevChatIdRef = useRef<string | null>(null);
   const messagesCount = messages.length;
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
-  // Auto-scroll to bottom when messages change
+  // When switching chats, scroll to bottom immediately
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const chatId = activeChat?.id ?? null;
+    if (chatId !== prevChatIdRef.current) {
+      prevChatIdRef.current = chatId;
+      // Use timeout to let Virtuoso render first
+      setTimeout(() => {
+        if (messagesCount > 0) {
+          virtuosoRef.current?.scrollToIndex({
+            index: messagesCount - 1,
+            align: 'end',
+            behavior: 'auto',
+          });
+        }
+      }, 0);
+    }
+  }, [activeChat?.id, messagesCount]);
+
+  // Auto-scroll to bottom when new messages arrive (if user is near bottom)
+  useEffect(() => {
+    if (messagesCount > 0) {
+      virtuosoRef.current?.scrollToIndex({
+        index: messagesCount - 1,
+        align: 'end',
+        behavior: 'smooth',
+      });
+    }
   }, [messagesCount]);
 
-  // For private chats, always scroll to bottom when entering
-  useEffect(() => {
-    if (activeChat?.type === 'private' && messagesCount > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Load more messages when scrolling to top
+  const handleTopReached = () => {
+    if (hasMore && !isLoading) {
+      loadMoreMessages();
     }
-  }, [activeChat?.id]);
-
-  // Detect if user has scrolled up (for group chat "back to bottom" button)
-  const handleScroll = () => {
-    const container = containerRef.current;
-    if (!container) return;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
-    setShowScrollBtn(!isNearBottom);
   };
 
+  // Manual scroll to bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    virtuosoRef.current?.scrollToIndex({
+      index: messagesCount - 1,
+      align: 'end',
+      behavior: 'smooth',
+    });
     setShowScrollBtn(false);
   };
 
@@ -45,33 +66,33 @@ export default function MessageList() {
 
   return (
     <div className="flex-1 relative">
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="h-full overflow-y-auto p-4 space-y-3"
-      >
-        {hasMore && messages.length > 0 && (
-          <div className="flex justify-center py-2">
-            <button
-              onClick={loadMoreMessages}
-              disabled={isLoading}
-              className="text-sm text-primary-500 hover:text-primary-600 disabled:text-surface-400 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              {isLoading ? '加载中...' : '加载更多'}
-            </button>
+      <Virtuoso
+        ref={virtuosoRef}
+        data={messages}
+        computeItemKey={(index, item) => item._id}
+        initialTopMostItemIndex={Math.max(0, messagesCount - 1)}
+        followOutput="auto"
+        startReached={handleTopReached}
+        itemContent={(_index, message) => (
+          <div className="px-4 py-1.5">
+            <MessageBubble message={message} />
           </div>
         )}
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-surface-400">
-            暂无消息，发送第一条吧
-          </div>
-        ) : (
-          messages.map((message) => (
-            <MessageBubble key={message._id} message={message} />
-          ))
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+        components={{
+          Header: () =>
+            hasMore ? (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={loadMoreMessages}
+                  disabled={isLoading}
+                  className="text-sm text-primary-500 hover:text-primary-600 disabled:text-surface-400 disabled:cursor-not-allowed transition-colors duration-200"
+                >
+                  {isLoading ? '加载中...' : '加载更多'}
+                </button>
+              </div>
+            ) : null,
+        }}
+      />
 
       {/* Scroll to bottom button for group chats */}
       {showScrollBtn && activeChat?.type === 'group' && (
